@@ -208,7 +208,27 @@ app.use('/debug/*', async (c, next) => {
   return next();
 });
 app.route('/debug', debug);
-
+// Manual research trigger endpoint
+app.get('/research', async (c) => {
+  const apiKey = (c.env as any).PERPLEXITY_API_KEY;
+  if (!apiKey) {
+    return c.json({ error: 'PERPLEXITY_API_KEY not configured' }, 500);
+  }
+  
+  try {
+    console.log('[RESEARCH] Manual research triggered');
+    const result = await runOvernightResearch(apiKey);
+    const report = formatReportAsMarkdown(result);
+    return c.json({ 
+      success: true, 
+      message: 'Research completed',
+      report: report.substring(0, 5000) // Truncate for response
+    });
+  } catch (e) {
+    console.error('[RESEARCH] Failed:', e);
+    return c.json({ error: 'Research failed', details: String(e) }, 500);
+  }
+});
 // =============================================================================
 // CATCH-ALL: Proxy to Moltbot gateway
 // =============================================================================
