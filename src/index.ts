@@ -31,23 +31,7 @@ import { publicRoutes, api, adminUi, debug, cdp } from './routes';
 import loadingPageHtml from './assets/loading.html';
 import configErrorHtml from './assets/config-error.html';
 import { runOvernightResearch, formatReportAsMarkdown } from './overnight-research';
-```
 
-So it looks like:
-```
-import configErrorHtml from './assets/config-error.html';
-import { runOvernightResearch, formatReportAsMarkdown } from './overnight-research';
-```
-
----
-
-### Change 2: Update the `scheduled` function (around line 388)
-
-Use **Ctrl+G** (or Cmd+G on Mac) to "Go to line" and type **388** to jump there.
-
-**Find the line that says:**
-```
-console.log('[cron] Starting backup sync to R2...');
 /**
  * Transform error messages from the gateway to be more user-friendly.
  */
