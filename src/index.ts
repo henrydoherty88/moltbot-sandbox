@@ -429,3 +429,9 @@ async function scheduled(
     else { console.error('[cron] Sync failed:', result.error); }
   }
 }
+
+
+export default {
+    fetch: app.fetch,
+    scheduled,
+};
