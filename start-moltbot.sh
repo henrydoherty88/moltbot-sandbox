@@ -198,6 +198,7 @@ if (process.env.DISCORD_BOT_TOKEN) {
     config.channels.discord.enabled = true;
     config.channels.discord.dm = config.channels.discord.dm || {};
     config.channels.discord.dm.policy = process.env.DISCORD_DM_POLICY || 'pairing';
+        config.channels.discord.dm.allowFrom = process.env.DISCORD_DM_ALLOW_FROM ? process.env.DISCORD_DM_ALLOW_FROM.split(',') : ['*'];
 }
 
 // Slack configuration
