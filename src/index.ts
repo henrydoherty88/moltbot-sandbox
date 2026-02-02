@@ -30,7 +30,24 @@ import { ensureMoltbotGateway, findExistingMoltbotProcess, syncToR2 } from './ga
 import { publicRoutes, api, adminUi, debug, cdp } from './routes';
 import loadingPageHtml from './assets/loading.html';
 import configErrorHtml from './assets/config-error.html';
+import { runOvernightResearch, formatReportAsMarkdown } from './overnight-research';
+```
 
+So it looks like:
+```
+import configErrorHtml from './assets/config-error.html';
+import { runOvernightResearch, formatReportAsMarkdown } from './overnight-research';
+```
+
+---
+
+### Change 2: Update the `scheduled` function (around line 388)
+
+Use **Ctrl+G** (or Cmd+G on Mac) to "Go to line" and type **388** to jump there.
+
+**Find the line that says:**
+```
+console.log('[cron] Starting backup sync to R2...');
 /**
  * Transform error messages from the gateway to be more user-friendly.
  */
@@ -386,24 +403,25 @@ app.all('*', async (c) => {
  * Syncs moltbot config/state from container to R2 for persistence.
  */
 async function scheduled(
-  _event: ScheduledEvent,
+  event: ScheduledEvent,
   env: MoltbotEnv,
   _ctx: ExecutionContext
 ): Promise<void> {
   const options = buildSandboxOptions(env);
   const sandbox = getSandbox(env.Sandbox, 'moltbot', options);
 
-  console.log('[cron] Starting backup sync to R2...');
-  const result = await syncToR2(sandbox, env);
-  
-  if (result.success) {
-    console.log('[cron] Backup sync completed successfully at', result.lastSync);
+  if (event.cron === '0 10 * * 1-5') {
+    console.log('[cron] Starting overnight research...');
+    try {
+      const apiKey = (env as any).PERPLEXITY_API_KEY;
+      if (!apiKey) { console.error('[cron] No PERPLEXITY_API_KEY'); return; }
+      const result = await runOvernightResearch(apiKey);
+      console.log('[cron] Research done:', formatReportAsMarkdown(result).substring(0, 300));
+    } catch (e) { console.error('[cron] Research failed:', e); }
   } else {
-    console.error('[cron] Backup sync failed:', result.error, result.details || '');
+    console.log('[cron] Starting backup sync to R2...');
+    const result = await syncToR2(sandbox, env);
+    if (result.success) { console.log('[cron] Sync done at', result.lastSync); }
+    else { console.error('[cron] Sync failed:', result.error); }
   }
 }
-
-export default {
-  fetch: app.fetch,
-  scheduled,
-};
