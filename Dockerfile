@@ -42,3 +42,5 @@ WORKDIR /root/clawd
 
 # Expose the gateway port
 EXPOSE 18789
+# Start the moltbot gateway
+ENTRYPOINT ["/usr/local/bin/start-moltbot.sh"]
