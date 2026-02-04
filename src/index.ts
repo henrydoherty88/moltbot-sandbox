@@ -144,18 +144,20 @@ app.route('/cdp', cdp);
 // Manual research trigger endpoint (public, no auth required)
 app.get('/research', async (c) => {
     const apiKey = (c.env as any).PERPLEXITY_API_KEY;
+    const notionApiKey = (c.env as any).NOTION_API_KEY;
     if (!apiKey) {
           return c.json({ error: 'PERPLEXITY_API_KEY not configured' }, 500);
     }
 
     try {
           console.log('[RESEARCH] Manual research triggered');
-          const result = await runOvernightResearch(apiKey);
+          const result = await runOvernightResearch(apiKey, notionApiKey);
           const report = formatReportAsMarkdown(result);
           return c.json({ 
                   success: true, 
                   message: 'Research completed',
-                  report: report.substring(0, 5000)
+                  report: report.substring(0, 5000),
+                  notionUrl: result.notionUrl
           });
     } catch (e) {
           console.error('[RESEARCH] Failed:', e);
@@ -421,9 +423,11 @@ async function scheduled(
     console.log('[cron] Starting overnight research...');
     try {
       const apiKey = (env as any).PERPLEXITY_API_KEY;
+      const notionApiKey = (env as any).NOTION_API_KEY;
       if (!apiKey) { console.error('[cron] No PERPLEXITY_API_KEY'); return; }
-      const result = await runOvernightResearch(apiKey);
+      const result = await runOvernightResearch(apiKey, notionApiKey);
       console.log('[cron] Research done:', formatReportAsMarkdown(result).substring(0, 300));
+      if (result.notionUrl) { console.log('[cron] Notion page:', result.notionUrl); }
     } catch (e) { console.error('[cron] Research failed:', e); }
   } else {
     console.log('[cron] Starting backup sync to R2...');
